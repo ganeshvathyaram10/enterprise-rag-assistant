@@ -4,6 +4,7 @@ services:
     ports: ["8000:8000"]
     environment:
       GENERATOR_BACKEND: hf_local   # or hf_api (set HF_TOKEN) / extractive
+      GENERATOR_MODEL: Qwen/Qwen2.5-0.5B-Instruct
     volumes:
       - chroma_data:/srv/data/chroma
 volumes:
