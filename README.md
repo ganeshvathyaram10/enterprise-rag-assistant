@@ -20,7 +20,7 @@ question -> dense top-20 (Chroma) + BM25 top-20 -> Reciprocal Rank Fusion -> cro
 | Embeddings | `BAAI/bge-small-en-v1.5` | strong quality/size ratio, CPU friendly |
 | Retrieval | dense + BM25 fused with RRF | dense misses exact terms ("$750", "CFO"); BM25 misses paraphrase |
 | Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` | re-scores top-20 candidates jointly with the query |
-| Generator | `google/flan-t5-base` (local) or HF Inference API | swap via `GENERATOR_BACKEND` |
+| Generator | `Qwen2.5-1.5B-Instruct` (local) or HF Inference API | swap via `GENERATOR_BACKEND` |
 | Abstention | reranker score threshold | refuses instead of guessing |
 
 ## Quickstart
@@ -64,16 +64,29 @@ python -m eval.run_eval          # writes eval/results.md
 
 ### Results
 
-Run `python -m eval.run_eval` with the default (real) models and paste the output here:
+Measured on 19 questions (16 answerable, 3 unanswerable) over 4 synthetic policy documents, running on an 8 GB MacBook Air (Apple GPU via MPS) with `bge-small-en-v1.5`, `ms-marco-MiniLM-L-6-v2` and `Qwen2.5-1.5B-Instruct`.
 
-| Metric | Hybrid only | Hybrid + rerank |
-|---|---|---|
-| hit@4 | _fill in_ | _fill in_ |
-| MRR | _fill in_ | _fill in_ |
-| Faithfulness | | _fill in_ |
-| Hallucination rate | | _fill in_ |
-| Abstention accuracy | | _fill in_ |
-| p95 latency (ms) | | _fill in_ |
+| Metric | Result |
+|---|---|
+| hit@4 / MRR (hybrid only) | 1.00 / 1.00 |
+| hit@4 / MRR (hybrid + rerank) | 1.00 / 1.00 |
+| Answer correctness | 0.94 (15 of 16) |
+| Answer relevance | 0.79 |
+| Faithfulness | 0.87 |
+| Hallucination rate (1 - faithfulness) | 0.13 |
+| Abstention accuracy (unanswerable) | 3 of 3 |
+| Latency p50 / p95 | 1.1 s / 1.7 s |
+
+Notes on reading these numbers:
+
+- Retrieval is saturated on a 4-document corpus, so this eval cannot show the benefit of reranking. A larger corpus is the next step.
+- Faithfulness is a conservative estimate: each answer claim must be entailed by a single retrieved sentence (or adjacent pair) according to an NLI model, so claims that combine several sentences can be under-counted.
+- Faithfulness is not correctness. An answer can be faithful to the retrieved text and still answer the wrong question.
+
+### Known failure modes
+
+- "What is the 401(k) match?" returns "$1,500" (the learning budget). Both facts are in the same chunk and the generator picks the wrong figure. Fix candidates: smaller chunks, a stronger generator, or answer verification.
+- Correctness uses keyword matching, which is strict and small-sample. An LLM-judged check would be more robust.
 
 ## Tests
 
@@ -91,4 +104,4 @@ All settings are environment variables (see `app/config.py`): `EMBEDDING_MODEL`,
 
 - Abstention threshold is a fixed reranker score; tune it on a larger eval set.
 - Eval set is small and synthetic; extend with real documents and questions.
-- flan-t5-base is weak at long synthesis; use `hf_api` or a bigger model for production quality.
+- Local generation uses the Apple GPU (MPS) when available; on CPU-only machines expect slower responses.

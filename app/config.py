@@ -15,7 +15,7 @@ class Settings:
     reranker_model: str = os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
     # "hf_local" | "hf_api" | "extractive"
     generator_backend: str = os.getenv("GENERATOR_BACKEND", "hf_local")
-    generator_model: str = os.getenv("GENERATOR_MODEL", "google/flan-t5-base")
+    generator_model: str = os.getenv("GENERATOR_MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
     hf_api_model: str = os.getenv("HF_API_MODEL", "HuggingFaceH4/zephyr-7b-beta")
     # "nli" | "lexical"
     faithfulness_backend: str = os.getenv("FAITHFULNESS_BACKEND", "nli")

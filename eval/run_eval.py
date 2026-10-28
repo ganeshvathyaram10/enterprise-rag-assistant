@@ -40,7 +40,8 @@ def main(out):
     h1, m1 = retrieval_stats(pipe, answerable, use_rerank=True)
 
     correct, rel, fa, lat, abst_ok = [], [], [], [], []
-    for r in rows:
+    for n, r in enumerate(rows, 1):
+        print(f'[{n}/{len(rows)}] {r["question"][:60]}', flush=True)
         t = time.perf_counter()
         res = pipe.ask(r["question"])
         lat.append((time.perf_counter() - t) * 1000)

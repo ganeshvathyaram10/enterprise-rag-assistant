@@ -36,15 +36,36 @@ class ExtractiveGenerator:
 
 
 class HFLocalGenerator:
-    def __init__(self, model_name: str):
-        from transformers import pipeline
+    """Local instruction-tuned chat model (e.g. Qwen2.5-1.5B-Instruct)."""
 
-        self.pipe = pipeline("text2text-generation", model=model_name)
+    def __init__(self, model_name: str):
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+
+        self.torch = torch
+        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
+        dtype = torch.float16 if self.device == "mps" else torch.float32
+        self.tok = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype).to(self.device)
+        self.model.eval()
 
     def generate(self, question: str, hits: List[Dict]) -> str:
-        prompt = PROMPT.format(context=build_context(hits), question=question)
-        out = self.pipe(prompt, max_new_tokens=200, do_sample=False)[0]["generated_text"].strip()
-        return out or ABSTAIN
+        nl = chr(10)
+        system = (
+            "You answer questions using only the provided context. "
+            "Answer in one complete sentence that states the specific facts "
+            "(numbers, limits, names), for example: Hybrid employees must be in the office 3 days per week [1]. "
+            "Cite the context numbers like [1]. "
+            "If the context does not contain the answer, reply exactly: " + ABSTAIN
+        )
+        user = "Context:" + nl + build_context(hits) + nl + nl + "Question: " + question
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        text = self.tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        inputs = self.tok(text, return_tensors="pt").to(self.device)
+        with self.torch.no_grad():
+            out = self.model.generate(**inputs, max_new_tokens=100, do_sample=False)
+        answer = self.tok.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip()
+        return answer or ABSTAIN
 
 
 class HFApiGenerator:

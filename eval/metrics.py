@@ -5,11 +5,23 @@ import numpy as np
 
 _TOKEN = re.compile(r"[a-z0-9]+")
 _CITE = re.compile(r"\[\d+\]")
+_SENT = re.compile(r"(?<=[.!?])\s+|\n+")
 
 
 def split_claims(answer: str) -> List[str]:
     answer = _CITE.sub("", answer)
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", answer) if len(s.strip()) > 10]
+    return [s.strip() for s in _SENT.split(answer) if len(s.strip()) > 3]
+
+
+def premise_windows(contexts: List[str]) -> List[str]:
+    """Single sentences plus adjacent sentence pairs from the retrieved chunks."""
+    out: List[str] = []
+    for c in contexts:
+        c = re.sub(r"^#+\s*", "", c, flags=re.M)
+        sents = [s.strip() for s in _SENT.split(c) if len(s.strip()) > 10]
+        out.extend(sents)
+        out.extend(a + " " + b for a, b in zip(sents, sents[1:]))
+    return out
 
 
 class LexicalFaithfulness:
@@ -19,7 +31,7 @@ class LexicalFaithfulness:
         ctx = set(_TOKEN.findall(" ".join(contexts).lower()))
         claims = split_claims(answer)
         if not claims:
-            return 1.0
+            return 0.0
         ok = 0
         for c in claims:
             toks = [t for t in _TOKEN.findall(c.lower()) if len(t) > 2]
@@ -28,22 +40,28 @@ class LexicalFaithfulness:
 
 
 class NLIFaithfulness:
-    """Fraction of answer claims entailed by the retrieved context (NLI cross-encoder)."""
+    """Fraction of answer claims entailed by at least one retrieved sentence (or sentence pair)."""
 
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, threshold: float = 0.5):
         from sentence_transformers import CrossEncoder
 
         self.model = CrossEncoder(model_name)
-        # label order for cross-encoder/nli-* models: contradiction, entailment, neutral
-        self.entail_idx = 1
+        labels = {int(k): v.lower() for k, v in self.model.model.config.id2label.items()}
+        self.entail_idx = next(i for i, v in labels.items() if "entail" in v)
+        self.threshold = threshold
 
     def score(self, answer: str, contexts: List[str]) -> float:
         claims = split_claims(answer)
-        if not claims:
-            return 1.0
-        premise = " ".join(contexts)
-        logits = self.model.predict([(premise, c) for c in claims], show_progress_bar=False)
-        return float((np.argmax(logits, axis=1) == self.entail_idx).mean())
+        premises = premise_windows(contexts)
+        if not claims or not premises:
+            return 0.0
+        supported = 0
+        for claim in claims:
+            logits = np.asarray(self.model.predict([(p, claim) for p in premises], show_progress_bar=False))
+            e = np.exp(logits - logits.max(axis=1, keepdims=True))
+            probs = e / e.sum(axis=1, keepdims=True)
+            supported += probs[:, self.entail_idx].max() >= self.threshold
+        return supported / len(claims)
 
 
 def get_faithfulness(backend: str, model: str):
