@@ -4,6 +4,8 @@ Question answering over an internal document knowledge base with **cited answers
 
 Stack: Python · LangChain (text splitters / documents) · Hugging Face (sentence-transformers, cross-encoders, transformers) · ChromaDB · FastAPI · Docker
 
+![API demo](docs/demo.png)
+
 ## Architecture
 
 ```
@@ -33,7 +35,7 @@ curl -s localhost:8000/ask -H 'content-type: application/json' \
   -d '{"question": "How much is the home office stipend?"}' | jq
 ```
 
-Docker:
+Docker (uses the smaller `Qwen2.5-0.5B-Instruct` on CPU; the eval numbers below come from the 1.5B model running natively on Apple GPU):
 
 ```bash
 docker compose up --build
