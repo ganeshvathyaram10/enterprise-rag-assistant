@@ -1,0 +1,10 @@
+services:
+  rag:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      GENERATOR_BACKEND: hf_local   # or hf_api (set HF_TOKEN) / extractive
+    volumes:
+      - chroma_data:/srv/data/chroma
+volumes:
+  chroma_data:

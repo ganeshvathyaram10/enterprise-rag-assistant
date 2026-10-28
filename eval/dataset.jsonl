@@ -1,0 +1,19 @@
+{"question": "How many days per week must hybrid employees be in the office?", "source": "remote_work_policy.md", "keywords": ["3", "three"], "answerable": true}
+{"question": "How much is the home office stipend for remote workers?", "source": "remote_work_policy.md", "keywords": ["750"], "answerable": true}
+{"question": "How long can I work from another country each year?", "source": "remote_work_policy.md", "keywords": ["20"], "answerable": true}
+{"question": "Can I store company data on my personal laptop while working remotely?", "source": "remote_work_policy.md", "keywords": ["not", "personal"], "answerable": true}
+{"question": "What is the deadline to submit an expense report?", "source": "expense_policy.md", "keywords": ["30"], "answerable": true}
+{"question": "Who needs to approve an expense of $15,000?", "source": "expense_policy.md", "keywords": ["CFO"], "answerable": true}
+{"question": "What is the nightly hotel cap in major cities?", "source": "expense_policy.md", "keywords": ["220"], "answerable": true}
+{"question": "Is alcohol reimbursable on business trips?", "source": "expense_policy.md", "keywords": ["not"], "answerable": true}
+{"question": "How quickly must a suspected security incident be reported?", "source": "security_incident_response.md", "keywords": ["1 hour", "hour"], "answerable": true}
+{"question": "Within how many minutes must the team be assembled for a critical incident?", "source": "security_incident_response.md", "keywords": ["15"], "answerable": true}
+{"question": "When must regulators be notified after a breach involving customer data?", "source": "security_incident_response.md", "keywords": ["72"], "answerable": true}
+{"question": "When is the post-incident review held?", "source": "security_incident_response.md", "keywords": ["5", "five"], "answerable": true}
+{"question": "How many PTO days do employees get per year?", "source": "benefits_handbook.md", "keywords": ["20"], "answerable": true}
+{"question": "How many weeks of parental leave do primary caregivers get?", "source": "benefits_handbook.md", "keywords": ["16"], "answerable": true}
+{"question": "What is the 401(k) match?", "source": "benefits_handbook.md", "keywords": ["5%", "dollar"], "answerable": true}
+{"question": "What is the annual learning budget?", "source": "benefits_handbook.md", "keywords": ["1,500", "1500"], "answerable": true}
+{"question": "What is the company policy on bringing pets to the office?", "source": null, "keywords": [], "answerable": false}
+{"question": "What is the CEO's annual salary?", "source": null, "keywords": [], "answerable": false}
+{"question": "Does Acme offer stock options to new hires?", "source": null, "keywords": [], "answerable": false}
